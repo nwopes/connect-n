@@ -14,7 +14,7 @@ a presentation.
 | `tournament.py` | Round-robin tournament (Connect 4 on 6x7, and Connect 5 on 8x9) |
 | `experiments.py` | Pruning efficiency, Alpha-Beta depth scaling, MCTS budget scaling |
 | `analyze.py` | Turns raw game logs into standings, Elo ratings, head-to-head tables and charts |
-| `results/` | Raw game logs (CSV), summaries (JSON), the trained Q-table |
+| `results/` | Raw game logs (CSV) and summaries (JSON). The trained Q-tables are not in git (one is over 100 MB); `tournament.py` retrains them in about a minute |
 | `charts/` | All charts (PNG) |
 | `REPORT.pdf` / `REPORT.md` / `REPORT.html` | The full write-up (same content, three formats) |
 | `presentation/ConnectN_AI_Presentation.pptx` | Slide deck to present the project |
