@@ -1,0 +1,9 @@
+{
+  "EXP_DEPTH_TITLE": "Deeper search buys strength - up to a point",
+  "EXP_DEPTH_TEXT": "Alpha-Beta at depth 3 is the same algorithm as its opponent and scores 48% - the expected coin flip, a good sanity check.\n\nEach extra level of look-ahead adds strength, peaking around depth 5-7 at 64-74%.\n\nDepth 1 (27.5%) is basically Greedy: it can't see traps two moves away.",
+  "EXP_DEPTH_NOTES": "Each point is 60 games: 30 random openings, each played with both colours. With 60 games a single point carries roughly plus or minus 6 percentage points of noise, so the dip from depth 5 to 6 is within noise; the overall trend is the result. Depth 6 costs about 87 ms per move and depth 7 about 188 ms.",
+  "EXP_MCTS_TITLE": "MCTS gets stronger with more simulations",
+  "EXP_MCTS_TEXT": "With 250 simulations MCTS scores just 17% - its statistics are too noisy to trust.\n\nIt overtakes Minimax at about 2,000 simulations and reaches 63-65% at 4,000-8,000.\n\nThe catch: doubling the budget doubles the thinking time, for smaller and smaller gains.",
+  "EXP_MCTS_NOTES": "Same set-up: 60 games per setting against Minimax depth 3. Thinking time grows linearly: about 44 ms per move at 250 simulations, 300 ms at 2,000 and 1.2 seconds at 8,000. The tournament used 2,000.",
+  "BEST_NOTES": "Alpha-Beta finished first on both boards and won every one of its twelve head-to-head matchups. In Connect 4 its closest rival was MCTS, which it beat 56% to 44%; in Connect 5 its closest rival was Minimax, which it beat 72.5% to 27.5%. It lost just 11 of 120 games in Connect 5."
+}

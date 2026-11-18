@@ -1,0 +1,109 @@
+{
+  "pruning": [
+    {
+      "depth": 1,
+      "minimax_nodes": 6,
+      "alphabeta_nodes": 6,
+      "minimax_ms": 0.37,
+      "alphabeta_ms": 0.36
+    },
+    {
+      "depth": 2,
+      "minimax_nodes": 43,
+      "alphabeta_nodes": 21,
+      "minimax_ms": 1.73,
+      "alphabeta_ms": 0.84
+    },
+    {
+      "depth": 3,
+      "minimax_nodes": 280,
+      "alphabeta_nodes": 89,
+      "minimax_ms": 7.94,
+      "alphabeta_ms": 2.66
+    },
+    {
+      "depth": 4,
+      "minimax_nodes": 1732,
+      "alphabeta_nodes": 238,
+      "minimax_ms": 65.62,
+      "alphabeta_ms": 8.28
+    },
+    {
+      "depth": 5,
+      "minimax_nodes": 10541,
+      "alphabeta_nodes": 730,
+      "minimax_ms": 334.49,
+      "alphabeta_ms": 21.72
+    }
+  ],
+  "depth": [
+    {
+      "setting": 1,
+      "score_pct": 27.5,
+      "ms_per_move": 0.5
+    },
+    {
+      "setting": 2,
+      "score_pct": 45.0,
+      "ms_per_move": 1.5
+    },
+    {
+      "setting": 3,
+      "score_pct": 48.3,
+      "ms_per_move": 5.4
+    },
+    {
+      "setting": 4,
+      "score_pct": 51.7,
+      "ms_per_move": 15.1
+    },
+    {
+      "setting": 5,
+      "score_pct": 74.2,
+      "ms_per_move": 39.2
+    },
+    {
+      "setting": 6,
+      "score_pct": 64.2,
+      "ms_per_move": 86.8
+    },
+    {
+      "setting": 7,
+      "score_pct": 66.7,
+      "ms_per_move": 188.1
+    }
+  ],
+  "mcts": [
+    {
+      "setting": 250,
+      "score_pct": 16.7,
+      "ms_per_move": 43.7
+    },
+    {
+      "setting": 500,
+      "score_pct": 41.7,
+      "ms_per_move": 75.0
+    },
+    {
+      "setting": 1000,
+      "score_pct": 44.2,
+      "ms_per_move": 152.2
+    },
+    {
+      "setting": 2000,
+      "score_pct": 54.2,
+      "ms_per_move": 298.3
+    },
+    {
+      "setting": 4000,
+      "score_pct": 65.0,
+      "ms_per_move": 614.1
+    },
+    {
+      "setting": 8000,
+      "score_pct": 62.5,
+      "ms_per_move": 1180.8
+    }
+  ],
+  "games_per_setting": 60
+}

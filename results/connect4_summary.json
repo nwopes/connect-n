@@ -1,0 +1,455 @@
+{
+  "config": "connect4",
+  "rows": 6,
+  "cols": 7,
+  "n": 4,
+  "games": 840,
+  "games_per_pair": 40,
+  "first_player_win_pct": 48.3,
+  "second_player_win_pct": 49.3,
+  "draw_pct": 2.4,
+  "q_known_state_pct": 54.6,
+  "q_decisions": 1266,
+  "standings": [
+    {
+      "key": "AlphaBeta",
+      "name": "Alpha-Beta (d=6)",
+      "games": 240,
+      "wins": 189,
+      "draws": 10,
+      "losses": 41,
+      "score_pct": 80.8,
+      "win_pct": 78.8,
+      "elo": 1857,
+      "ms_per_move": 120.95,
+      "win_pct_first": 76.7,
+      "win_pct_second": 80.8,
+      "avg_game_length": 23.8
+    },
+    {
+      "key": "MCTS",
+      "name": "MCTS (2000)",
+      "games": 240,
+      "wins": 182,
+      "draws": 8,
+      "losses": 50,
+      "score_pct": 77.5,
+      "win_pct": 75.8,
+      "elo": 1825,
+      "ms_per_move": 368.71,
+      "win_pct_first": 79.2,
+      "win_pct_second": 72.5,
+      "avg_game_length": 23.1
+    },
+    {
+      "key": "Minimax",
+      "name": "Minimax (d=3)",
+      "games": 240,
+      "wins": 160,
+      "draws": 8,
+      "losses": 72,
+      "score_pct": 68.3,
+      "win_pct": 66.7,
+      "elo": 1743,
+      "ms_per_move": 18.42,
+      "win_pct_first": 62.5,
+      "win_pct_second": 70.8,
+      "avg_game_length": 23.4
+    },
+    {
+      "key": "MonteCarlo",
+      "name": "Monte Carlo (2000)",
+      "games": 240,
+      "wins": 136,
+      "draws": 6,
+      "losses": 98,
+      "score_pct": 57.9,
+      "win_pct": 56.7,
+      "elo": 1651,
+      "ms_per_move": 304.97,
+      "win_pct_first": 55.8,
+      "win_pct_second": 57.5,
+      "avg_game_length": 21.1
+    },
+    {
+      "key": "Greedy",
+      "name": "Greedy (1-ply)",
+      "games": 240,
+      "wins": 113,
+      "draws": 8,
+      "losses": 119,
+      "score_pct": 48.8,
+      "win_pct": 47.1,
+      "elo": 1564,
+      "ms_per_move": 0.31,
+      "win_pct_first": 48.3,
+      "win_pct_second": 45.8,
+      "avg_game_length": 18.6
+    },
+    {
+      "key": "Random",
+      "name": "Random",
+      "games": 240,
+      "wins": 21,
+      "draws": 0,
+      "losses": 219,
+      "score_pct": 8.8,
+      "win_pct": 8.8,
+      "elo": 938,
+      "ms_per_move": 0.01,
+      "win_pct_first": 8.3,
+      "win_pct_second": 9.2,
+      "avg_game_length": 13.0
+    },
+    {
+      "key": "QLearning",
+      "name": "Q-Learning",
+      "games": 240,
+      "wins": 19,
+      "draws": 0,
+      "losses": 221,
+      "score_pct": 7.9,
+      "win_pct": 7.9,
+      "elo": 923,
+      "ms_per_move": 0.02,
+      "win_pct_first": 7.5,
+      "win_pct_second": 8.3,
+      "avg_game_length": 13.0
+    }
+  ],
+  "h2h_score_pct": {
+    "Random": {
+      "Random": null,
+      "Greedy": 0.0,
+      "Minimax": 0.0,
+      "AlphaBeta": 0.0,
+      "MonteCarlo": 0.0,
+      "MCTS": 0.0,
+      "QLearning": 52.5
+    },
+    "Greedy": {
+      "Random": 100.0,
+      "Greedy": null,
+      "Minimax": 21.2,
+      "AlphaBeta": 12.5,
+      "MonteCarlo": 37.5,
+      "MCTS": 21.2,
+      "QLearning": 100.0
+    },
+    "Minimax": {
+      "Random": 100.0,
+      "Greedy": 78.8,
+      "Minimax": null,
+      "AlphaBeta": 31.2,
+      "MonteCarlo": 60.0,
+      "MCTS": 40.0,
+      "QLearning": 100.0
+    },
+    "AlphaBeta": {
+      "Random": 100.0,
+      "Greedy": 87.5,
+      "Minimax": 68.8,
+      "AlphaBeta": null,
+      "MonteCarlo": 72.5,
+      "MCTS": 56.2,
+      "QLearning": 100.0
+    },
+    "MonteCarlo": {
+      "Random": 100.0,
+      "Greedy": 62.5,
+      "Minimax": 40.0,
+      "AlphaBeta": 27.5,
+      "MonteCarlo": null,
+      "MCTS": 17.5,
+      "QLearning": 100.0
+    },
+    "MCTS": {
+      "Random": 100.0,
+      "Greedy": 78.8,
+      "Minimax": 60.0,
+      "AlphaBeta": 43.8,
+      "MonteCarlo": 82.5,
+      "MCTS": null,
+      "QLearning": 100.0
+    },
+    "QLearning": {
+      "Random": 47.5,
+      "Greedy": 0.0,
+      "Minimax": 0.0,
+      "AlphaBeta": 0.0,
+      "MonteCarlo": 0.0,
+      "MCTS": 0.0,
+      "QLearning": null
+    }
+  },
+  "h2h_wdl": {
+    "Random": {
+      "Random": [
+        0,
+        0,
+        0
+      ],
+      "Greedy": [
+        0,
+        0,
+        40
+      ],
+      "Minimax": [
+        0,
+        0,
+        40
+      ],
+      "AlphaBeta": [
+        0,
+        0,
+        40
+      ],
+      "MonteCarlo": [
+        0,
+        0,
+        40
+      ],
+      "MCTS": [
+        0,
+        0,
+        40
+      ],
+      "QLearning": [
+        21,
+        0,
+        19
+      ]
+    },
+    "Greedy": {
+      "Random": [
+        40,
+        0,
+        0
+      ],
+      "Greedy": [
+        0,
+        0,
+        0
+      ],
+      "Minimax": [
+        8,
+        1,
+        31
+      ],
+      "AlphaBeta": [
+        4,
+        2,
+        34
+      ],
+      "MonteCarlo": [
+        14,
+        2,
+        24
+      ],
+      "MCTS": [
+        7,
+        3,
+        30
+      ],
+      "QLearning": [
+        40,
+        0,
+        0
+      ]
+    },
+    "Minimax": {
+      "Random": [
+        40,
+        0,
+        0
+      ],
+      "Greedy": [
+        31,
+        1,
+        8
+      ],
+      "Minimax": [
+        0,
+        0,
+        0
+      ],
+      "AlphaBeta": [
+        11,
+        3,
+        26
+      ],
+      "MonteCarlo": [
+        23,
+        2,
+        15
+      ],
+      "MCTS": [
+        15,
+        2,
+        23
+      ],
+      "QLearning": [
+        40,
+        0,
+        0
+      ]
+    },
+    "AlphaBeta": {
+      "Random": [
+        40,
+        0,
+        0
+      ],
+      "Greedy": [
+        34,
+        2,
+        4
+      ],
+      "Minimax": [
+        26,
+        3,
+        11
+      ],
+      "AlphaBeta": [
+        0,
+        0,
+        0
+      ],
+      "MonteCarlo": [
+        28,
+        2,
+        10
+      ],
+      "MCTS": [
+        21,
+        3,
+        16
+      ],
+      "QLearning": [
+        40,
+        0,
+        0
+      ]
+    },
+    "MonteCarlo": {
+      "Random": [
+        40,
+        0,
+        0
+      ],
+      "Greedy": [
+        24,
+        2,
+        14
+      ],
+      "Minimax": [
+        15,
+        2,
+        23
+      ],
+      "AlphaBeta": [
+        10,
+        2,
+        28
+      ],
+      "MonteCarlo": [
+        0,
+        0,
+        0
+      ],
+      "MCTS": [
+        7,
+        0,
+        33
+      ],
+      "QLearning": [
+        40,
+        0,
+        0
+      ]
+    },
+    "MCTS": {
+      "Random": [
+        40,
+        0,
+        0
+      ],
+      "Greedy": [
+        30,
+        3,
+        7
+      ],
+      "Minimax": [
+        23,
+        2,
+        15
+      ],
+      "AlphaBeta": [
+        16,
+        3,
+        21
+      ],
+      "MonteCarlo": [
+        33,
+        0,
+        7
+      ],
+      "MCTS": [
+        0,
+        0,
+        0
+      ],
+      "QLearning": [
+        40,
+        0,
+        0
+      ]
+    },
+    "QLearning": {
+      "Random": [
+        19,
+        0,
+        21
+      ],
+      "Greedy": [
+        0,
+        0,
+        40
+      ],
+      "Minimax": [
+        0,
+        0,
+        40
+      ],
+      "AlphaBeta": [
+        0,
+        0,
+        40
+      ],
+      "MonteCarlo": [
+        0,
+        0,
+        40
+      ],
+      "MCTS": [
+        0,
+        0,
+        40
+      ],
+      "QLearning": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "order": [
+    "AlphaBeta",
+    "MCTS",
+    "Minimax",
+    "MonteCarlo",
+    "Greedy",
+    "Random",
+    "QLearning"
+  ]
+}

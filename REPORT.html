@@ -1,0 +1,425 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Connect-N AI Report</title><style>body{font-family:Calibri,Arial,sans-serif;color:#1F2328;max-width:820px;margin:32px auto;line-height:1.5;font-size:11pt}
+h1{color:#1B2A4A;font-size:26pt;margin-bottom:4px}h2{color:#1B2A4A;border-bottom:1px solid #E5E7EB;padding-bottom:4px;margin-top:28px}
+h3{color:#1B2A4A}table{border-collapse:collapse;margin:12px 0;font-size:10pt}th{background:#1B2A4A;color:#fff;text-align:left}
+th,td{padding:5px 9px;border:1px solid #E5E7EB}tr:nth-child(even) td{background:#EEF1F6}img{max-width:100%;margin:8px 0}
+code,pre{font-family:Consolas,monospace;font-size:9.5pt;background:#EEF1F6}pre{padding:10px;border-radius:6px;overflow-x:auto}
+blockquote{border-left:4px solid #E0A100;margin:12px 0;padding:6px 14px;background:#FCF6E3}h2,h3{page-break-after:avoid}img,table{page-break-inside:avoid}</style></head><body><h1>Which AI Plays Connect-N Best?</h1>
+<p><strong>A comparison of seven game-playing algorithms over 1,260 tournament games</strong></p>
+<hr>
+<h2>1. Summary</h2>
+<p>I built a Connect-N game (Connect 4 generalised to any board size and any number in a row) and implemented seven algorithms to play it. Every algorithm then played every other one in a round-robin tournament on two boards: classic <strong>Connect 4 (6x7)</strong> and <strong>Connect 5 (8x9)</strong>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Connect 4 (6x7)</th>
+<th>Connect 5 (8x9)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Best</strong></td>
+<td>Alpha-Beta: 1857 Elo, 80.8% score</td>
+<td>Alpha-Beta: 1890 Elo, 86.2% score</td>
+</tr>
+<tr>
+<td><strong>Runner-up</strong></td>
+<td>MCTS: 1825 Elo, 77.5%</td>
+<td>Minimax: 1791 Elo, 76.2%</td>
+</tr>
+<tr>
+<td><strong>Worst</strong></td>
+<td>Q-Learning: 923 Elo, 7.9% (below Random)</td>
+<td>Q-Learning: 936 Elo, 5.0% (below Random)</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Best overall: Alpha-Beta pruning.</strong> It finished first on both boards and won all 12 of its head-to-head matchups. No algorithm beat it over a series. Its lead was clearest on the bigger Connect 5 board (86.2% score, only 11 losses in 120 games). On Connect 4, MCTS came closest and lost to it 44% to 56%.</li>
+<li><strong>Worst: tabular Q-Learning.</strong> It scored <em>below</em> the Random baseline on both boards. The game has about 4.5 trillion positions, and a lookup table can&#39;t generalise from the positions it has seen to the ones it hasn&#39;t. Once a game leaves familiar territory, it is effectively moving at random.</li>
+</ul>
+<hr>
+<h2>2. The game</h2>
+<p><code>connectn/board.py</code> implements Connect-N with a <strong>bitboard</strong>: each player&#39;s pieces are stored as the bits of one integer. Each column gets one spare bit on top, so lines can&#39;t wrap around from one column into the next. A line of N pieces in direction <code>d</code> exists exactly when</p>
+<pre><code>b &amp; (b &gt;&gt; d) &amp; (b &gt;&gt; 2d) &amp; ... &amp; (b &gt;&gt; (N-1)d) != 0
+</code></pre>
+<p>with <code>d</code> = 1 (vertical), rows+1 (horizontal) and rows / rows+2 (the two diagonals). A win check is therefore a handful of integer operations. That speed is what made 1,260 full AI-vs-AI games, plus the experiments, feasible in pure Python. A full random game takes about 0.1 ms.</p>
+<p>The engine supports any <code>rows x cols</code> board and any <code>N</code>. <code>play.py</code> lets a human play against any of the algorithms, or watch two of them play each other.</p>
+<hr>
+<h2>3. The algorithms: what, how and why</h2>
+<p>I picked the seven algorithms to cover the four classic families of game AI: <strong>baselines</strong>, <strong>search</strong>, <strong>sampling</strong> and <strong>learning</strong>. Search and sampling algorithms get a <strong>fixed amount of computation</strong> per move (a search depth or a number of simulations), not a time limit. That makes the results reproducible on any machine.</p>
+<h3>3.1 Random (baseline)</h3>
+<ul>
+<li><strong>How:</strong> plays a uniformly random legal column.</li>
+<li><strong>Why:</strong> it sets the floor. Any algorithm that can&#39;t clearly beat Random has learned nothing useful.</li>
+</ul>
+<h3>3.2 Greedy (rule-based, 1-ply)</h3>
+<ul>
+<li><strong>How:</strong> 1) play a winning move if there is one; 2) otherwise block the opponent&#39;s immediate win; 3) avoid moves that let the opponent win by playing on top; 4) otherwise pick the move with the best <strong>heuristic score</strong> (below).</li>
+<li><strong>Why:</strong> it shows how far hand-written rules can go with no look-ahead. It&#39;s the simplest &quot;intelligent&quot; player and roughly how a beginner plays.</li>
+</ul>
+<p><strong>The heuristic</strong> (shared with Minimax and Alpha-Beta): look at every possible N-length line on the board. If a line holds only my pieces, add a weight that grows steeply with how many pieces it has (1, 4, 16, ... and 1,000 for N-1 in a row). If it holds only the opponent&#39;s pieces, subtract the same weight. Lines with both colours are dead and score nothing. A small bonus goes to centre-column pieces, which take part in the most lines.</p>
+<h3>3.3 Minimax (depth 3)</h3>
+<ul>
+<li><strong>How:</strong> builds the full tree of move sequences 3 turns deep and scores the leaves with the heuristic. It assumes the opponent always picks the reply that&#39;s worst for us, and chooses the move whose worst case is best. It is implemented in negamax form, and wins found sooner score higher.</li>
+<li><strong>Why:</strong> it is the textbook algorithm for two-player, zero-sum, perfect-information games, and the foundation of classic chess engines. It explores every branch, so its cost grows as about 7^depth.</li>
+</ul>
+<h3>3.4 Alpha-Beta pruning (depth 6)</h3>
+<ul>
+<li><strong>How:</strong> minimax plus three improvements:<ol>
+<li><strong>Alpha-beta pruning:</strong> stops exploring a branch as soon as it is proven worse than an alternative already found. The answer is mathematically identical to minimax.</li>
+<li><strong>Move ordering:</strong> tries centre columns first, so good moves are found early and more branches get pruned.</li>
+<li><strong>Transposition table:</strong> remembers positions already evaluated in the current search, because different move orders often lead to the same board.</li>
+</ol>
+</li>
+<li><strong>Why:</strong> to measure how much efficiency is worth. Pruning makes a search about twice as deep affordable for the same cost. I checked that Alpha-Beta picks exactly the same moves as Minimax at equal depth (70 of 70 test positions, all ties accounted for).</li>
+</ul>
+<h3>3.5 Flat Monte Carlo (2,000 playouts)</h3>
+<ul>
+<li><strong>How:</strong> for each legal column, plays an equal share of 2,000 completely random games to the end, then picks the column with the best average result. No tree and no heuristic.</li>
+<li><strong>Why:</strong> it needs no knowledge of strategy, only the rules. It shows how much random simulation alone can tell you.</li>
+</ul>
+<h3>3.6 Monte Carlo Tree Search, UCT (2,000 iterations)</h3>
+<ul>
+<li><p><strong>How:</strong> each iteration runs four phases:</p>
+<ol>
+<li><strong>Select:</strong> walk down the tree, picking the child that maximises <code>wins/visits + 1.41 * sqrt(ln(parent visits) / visits)</code>. This UCT rule balances exploiting good moves with exploring rarely tried ones.</li>
+<li><strong>Expand:</strong> add one untried move as a new node.</li>
+<li><strong>Simulate:</strong> play random moves to the end of the game.</li>
+<li><strong>Backpropagate:</strong> credit the result to every node on the path.</li>
+</ol>
+<p>After 2,000 iterations it plays the most-visited move.</p>
+</li>
+<li><p><strong>Why:</strong> it is the modern successor to flat Monte Carlo (and part of AlphaGo). It spends its simulations on promising lines instead of evenly, so it can see that a move which looks good has a refutation. It gets <strong>the same 2,000 simulations</strong> as flat Monte Carlo, so comparing the two isolates the value of the tree.</p>
+</li>
+</ul>
+<h3>3.7 Tabular Q-Learning (50,000 self-play games)</h3>
+<ul>
+<li><strong>How:</strong> keeps a table <code>Q[position][column]</code>. It trains by playing 50,000 games against itself, choosing the best-known move most of the time and a random move with probability epsilon (decaying from 0.2 to 0.05) to explore. After each move it updates <code>Q[s][a] += 0.3 * (target - Q[s][a])</code>, where the target is +1 for a winning move, 0 for a draw, and otherwise <strong>minus</strong> the opponent&#39;s best value in the next position (negamax form). In a game it plays the highest-valued column. For a position it has never seen, it has no information and plays randomly.</li>
+<li><strong>Why:</strong> it is the only algorithm that is told nothing about strategy and has to learn from experience. Reinforcement learning is behind famous game AIs, so it is the obvious representative of &quot;learning&quot;.</li>
+</ul>
+<hr>
+<h2>4. Methodology</h2>
+<p><strong>Round robin.</strong> All 21 pairings were played: 40 games per pairing in Connect 4 (840 games) and 20 games per pairing in Connect 5 (420 games), on 6 CPU cores.</p>
+<p><strong>Openings and colours.</strong> Each pair of games starts from a random 2-move opening and is played twice, once with each algorithm moving first. All pairings use the same list of openings.</p>
+<blockquote>
+<p><strong>A lesson learned along the way.</strong> In my first run, games didn&#39;t use random openings. Minimax, Alpha-Beta and Greedy are nearly deterministic, so they kept replaying the same game. Some pairings produced only <strong>2 distinct games out of 20</strong>, and the results were distorted: Minimax at depth 3 appeared to beat Alpha-Beta at depth 6. A depth-scaling experiment gave a nonsensical zig-zag, which exposed the problem. I switched to the opening scheme above, which is the standard fix used in chess-engine testing, and re-ran everything. <strong>Every pairing now has 20 distinct games out of 20</strong>, and all the results below come from that corrected run.</p>
+</blockquote>
+<p><strong>Ratings.</strong> Score % counts a win as 1 and a draw as 0.5. Elo ratings were fitted to all games at once with a Bradley-Terry model (field average = 1500). A 100-point gap means the stronger side is expected to score about 64%.</p>
+<p><strong>Fairness check.</strong> In Connect 4, the first player won 48.3% of games, the second player 49.3%, and 2.4% were draws. The opening scheme removes the first-move advantage from the comparison.</p>
+<hr>
+<h2>5. Results</h2>
+<h3>5.1 Connect 4 (6x7), 840 games</h3>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Algorithm</th>
+<th>Elo</th>
+<th>Score</th>
+<th>W-D-L</th>
+<th>ms / move</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Alpha-Beta (d=6)</strong></td>
+<td><strong>1857</strong></td>
+<td><strong>80.8%</strong></td>
+<td>189-10-41</td>
+<td>121</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MCTS (2,000)</td>
+<td>1825</td>
+<td>77.5%</td>
+<td>182-8-50</td>
+<td>369</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Minimax (d=3)</td>
+<td>1743</td>
+<td>68.3%</td>
+<td>160-8-72</td>
+<td>18</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Monte Carlo (2,000)</td>
+<td>1651</td>
+<td>57.9%</td>
+<td>136-6-98</td>
+<td>305</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Greedy</td>
+<td>1564</td>
+<td>48.8%</td>
+<td>113-8-119</td>
+<td>0.31</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Random</td>
+<td>938</td>
+<td>8.8%</td>
+<td>21-0-219</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Q-Learning</td>
+<td>923</td>
+<td>7.9%</td>
+<td>19-0-221</td>
+<td>0.02</td>
+</tr>
+</tbody></table>
+<p><img src="charts/connect4_elo.png" alt="Connect 4 Elo"></p>
+<p><img src="charts/connect4_h2h.png" alt="Connect 4 head to head"></p>
+<p>The head-to-head matrix shows an almost perfect pecking order. Each algorithm beats everything below it in the table. Alpha-Beta&#39;s row is positive everywhere: 56% vs MCTS, 69% vs Minimax, 73% vs Monte Carlo, 88% vs Greedy and 100% vs Random and Q-Learning. Every search and sampling algorithm won <strong>every single game</strong> against Random and Q-Learning.</p>
+<p><img src="charts/connect4_wdl.png" alt="Win / draw / loss"></p>
+<h3>5.2 Connect 5 (8x9), 420 games</h3>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Algorithm</th>
+<th>Elo</th>
+<th>Score</th>
+<th>W-D-L</th>
+<th>ms / move</th>
+<th>Connect 4 rank</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Alpha-Beta (d=6)</strong></td>
+<td><strong>1890</strong></td>
+<td><strong>86.2%</strong></td>
+<td>98-11-11</td>
+<td>527</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Minimax (d=3)</td>
+<td>1791</td>
+<td>76.2%</td>
+<td>89-5-26</td>
+<td>60</td>
+<td>3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>MCTS (2,000)</td>
+<td>1730</td>
+<td>69.6%</td>
+<td>80-7-33</td>
+<td>654</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Greedy</td>
+<td>1637</td>
+<td>59.2%</td>
+<td>65-12-43</td>
+<td>0.65</td>
+<td>5</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Monte Carlo (2,000)</td>
+<td>1469</td>
+<td>42.1%</td>
+<td>49-3-68</td>
+<td>633</td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Random</td>
+<td>1047</td>
+<td>11.7%</td>
+<td>14-0-106</td>
+<td>0.01</td>
+<td>6</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Q-Learning</td>
+<td>936</td>
+<td>5.0%</td>
+<td>6-0-114</td>
+<td>0.02</td>
+<td>7</td>
+</tr>
+</tbody></table>
+<p><img src="charts/connect5_elo.png" alt="Connect 5 Elo"></p>
+<p>On the bigger board, Alpha-Beta&#39;s lead grows: 72.5% against its closest rival, Minimax. The two <strong>sampling methods drop</strong>. MCTS falls from 2nd to 3rd, and flat Monte Carlo falls below Greedy. Random playouts of 40+ moves on a 72-square board say much less about who is really winning, so their estimates get noisier. The heuristic-guided searchers don&#39;t have that problem.</p>
+<h3>5.3 Strength vs. thinking time</h3>
+<p><img src="charts/connect4_time.png" alt="Strength vs time"></p>
+<p>Alpha-Beta is the strongest player <strong>and</strong> needs only a third of MCTS&#39;s thinking time (121 ms vs 369 ms per move in Connect 4). Minimax, at 18 ms per move, gives the most strength per millisecond. Greedy is nearly free (0.3 ms) and is a respectable mid-table player. Thinking time is single-core Python on the test machine. Only the relative sizes matter.</p>
+<h3>5.4 Experiment A: what pruning buys</h3>
+<p>Nodes examined per move, averaged over 25 mid-game positions:</p>
+<table>
+<thead>
+<tr>
+<th>Depth</th>
+<th>Minimax</th>
+<th>Alpha-Beta</th>
+<th>Saving</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>6</td>
+<td>6</td>
+<td>1x</td>
+</tr>
+<tr>
+<td>2</td>
+<td>43</td>
+<td>21</td>
+<td>2x</td>
+</tr>
+<tr>
+<td>3</td>
+<td>280</td>
+<td>89</td>
+<td>3x</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1,732</td>
+<td>238</td>
+<td>7x</td>
+</tr>
+<tr>
+<td>5</td>
+<td>10,541</td>
+<td>730</td>
+<td><strong>14x</strong></td>
+</tr>
+</tbody></table>
+<p><img src="charts/exp_pruning.png" alt="Pruning"></p>
+<p>The saving grows with every extra level. That is why Alpha-Beta could afford depth 6 in the tournament while Minimax was held to depth 3.</p>
+<h3>5.5 Experiment B: does deeper search help?</h3>
+<p>Alpha-Beta at depths 1 to 7 played Minimax (depth 3), 60 games per depth.</p>
+<table>
+<thead>
+<tr>
+<th>Depth</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Score vs Minimax d=3</td>
+<td>27.5%</td>
+<td>45.0%</td>
+<td>48.3%</td>
+<td>51.7%</td>
+<td>74.2%</td>
+<td>64.2%</td>
+<td>66.7%</td>
+</tr>
+<tr>
+<td>ms / move</td>
+<td>0.5</td>
+<td>1.5</td>
+<td>5.4</td>
+<td>15</td>
+<td>39</td>
+<td>87</td>
+<td>188</td>
+</tr>
+</tbody></table>
+<p><img src="charts/exp_depth.png" alt="Depth"></p>
+<p>At depth 3, Alpha-Beta <em>is</em> Minimax with less work, and it scores 48%, close to the expected 50%. That is a good sanity check. Strength rises with depth and levels off at about 65-75% from depth 5. With 60 games, each point carries roughly ±6 points of noise, so the dip at depth 6 is within noise.</p>
+<h3>5.6 Experiment C: does MCTS improve with more simulations?</h3>
+<table>
+<thead>
+<tr>
+<th>Simulations / move</th>
+<th>250</th>
+<th>500</th>
+<th>1,000</th>
+<th>2,000</th>
+<th>4,000</th>
+<th>8,000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Score vs Minimax d=3</td>
+<td>16.7%</td>
+<td>41.7%</td>
+<td>44.2%</td>
+<td>54.2%</td>
+<td>65.0%</td>
+<td>62.5%</td>
+</tr>
+<tr>
+<td>ms / move</td>
+<td>44</td>
+<td>75</td>
+<td>152</td>
+<td>298</td>
+<td>614</td>
+<td>1,181</td>
+</tr>
+</tbody></table>
+<p><img src="charts/exp_mcts.png" alt="MCTS"></p>
+<p>MCTS is weak with a small budget, overtakes Minimax at about 2,000 simulations, and levels off at 4,000-8,000. Each doubling of the budget doubles the thinking time for a smaller gain.</p>
+<hr>
+<h2>6. The best algorithm: Alpha-Beta</h2>
+<p>Alpha-Beta is the clear overall winner:</p>
+<ul>
+<li><strong>#1 on both boards</strong>, with the highest average Elo (1874; next best is MCTS at 1778).</li>
+<li><strong>Won all 12 head-to-head matchups</strong>: no algorithm beat it over a series on either board.</li>
+<li><strong>Most dominant on the harder board:</strong> 86.2% score in Connect 5, and at least 72.5% against every opponent there.</li>
+<li><strong>Efficient:</strong> it was the strongest player while thinking 3x faster than MCTS.</li>
+</ul>
+<p>The one caveat: on classic Connect 4 its edge over MCTS is real but modest (56% to 44% head-to-head, a 32-point Elo gap). &quot;By far&quot; describes the overall picture and Connect 5, not every single matchup.</p>
+<p><strong>Why it wins.</strong> It combines the two things that matter most in a tactical game like Connect-N:</p>
+<ol>
+<li><strong>Look-ahead.</strong> Six moves deep, it sees traps and forced wins that shallower or sampling-based players miss. Experiment B shows strength rising with depth.</li>
+<li><strong>Efficiency.</strong> Pruning, move ordering and the transposition table make that depth affordable: 14x fewer positions at depth 5 for the same answer.</li>
+</ol>
+<p>A sensible heuristic (counting open lines) guides it in positions too deep to calculate to the end. As the board grows, this guidance matters more and random playouts matter less, which is why its lead grows on Connect 5.</p>
+<hr>
+<h2>7. The worst algorithm: Q-Learning, and why</h2>
+<p><strong>Random is the floor by design, so the meaningful &quot;worst algorithm&quot; is the one that should have done better and didn&#39;t: tabular Q-Learning.</strong> It finished <em>last</em>, below Random, on both boards: 7.9% vs Random&#39;s 8.8% in Connect 4, and 5.0% vs 11.7% in Connect 5. It lost to Random head-to-head in Connect 5 (30%) and was level with it in Connect 4 (47.5%). Apart from its games against Random, it never won a single game against any algorithm.</p>
+<p>Why it fails:</p>
+<ol>
+<li><strong>The state space is far too big for a table.</strong> Connect 4 has about 4.5 trillion legal positions. Fifty thousand self-play games taught it about 678,000, roughly 0.00002% of them, and Connect 5 on 8x9 has vastly more.</li>
+<li><strong>Most positions it meets are new.</strong> It knew only <strong>54.6%</strong> of the positions it faced in Connect 4 and <strong>25.3%</strong> in Connect 5. Most of the known ones are early-game boards it saw during training. For every unknown position it moves at random, so in the middlegame and endgame, where games are decided, it plays like Random.</li>
+<li><strong>A table can&#39;t generalise.</strong> Knowing a value for one board says nothing about a board that differs by a single piece. Every position must be learned separately, so learning never &quot;adds up&quot; to strategy.</li>
+<li><strong>What it did learn is biased.</strong> It learned from games against itself, so its values describe its own exploratory, mostly random play. When it does recognise a position, it trusts values that don&#39;t hold against a real opponent. That&#39;s why it can do <em>worse</em> than pure Random: its confident moves in known positions are sometimes confidently wrong.</li>
+</ol>
+<p><strong>What would fix it:</strong> replacing the table with a function approximator, such as a neural network that generalises between similar positions, and combining learning with search, as AlphaZero does. That needs orders of magnitude more computation than a fair, laptop-scale comparison allows. The result is a good illustration of <em>why</em> those techniques were necessary.</p>
+<hr>
+<h2>8. Conclusions</h2>
+<ol>
+<li><strong>Look-ahead wins.</strong> The search algorithms with a heuristic, led by Alpha-Beta, topped both tournaments.</li>
+<li><strong>Pruning is free strength.</strong> Alpha-Beta gives the same answer as Minimax for a fraction of the work, and the saved effort becomes extra depth.</li>
+<li><strong>MCTS is the strongest knowledge-free method.</strong> Using only the rules, it came within 32 Elo of Alpha-Beta in Connect 4. It degrades on bigger boards, where random playouts are less informative.</li>
+<li><strong>Learning from scratch needs generalisation.</strong> A lookup table cannot cope with trillions of positions.</li>
+<li><strong>Test methodology matters.</strong> Without varied openings, deterministic algorithms replay the same games and the results mislead.</li>
+</ol>
+<hr>
+<h2>Appendix: reproducing everything</h2>
+<pre><code class="language-bash">python tournament.py      # both round robins, ~25 min on 6 cores
+python experiments.py     # pruning + depth + MCTS budget experiments, ~10 min
+python analyze.py         # standings, Elo, charts
+cd presentation &amp;&amp; node build_deck.js
+</code></pre>
+<p>Raw data: <code>results/connect4_games.csv</code> and <code>results/connect5_games.csv</code> contain one row per game, with both players, the opening, the full move list, the winner, the game length and thinking times. Summaries are in <code>results/*_summary.json</code>.</p>
+</body></html>

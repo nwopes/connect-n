@@ -1,0 +1,10 @@
+# dependencies / caches
+presentation/node_modules/
+__pycache__/
+*.pyc
+
+# trained Q-tables: large (one is >100 MB) and regenerated automatically by tournament.py
+results/qtable_*.pkl
+
+# local run logs (contain machine-specific paths)
+results/logs/
