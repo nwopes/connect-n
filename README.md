@@ -11,6 +11,7 @@ a presentation.
 | `connectn/board.py` | The game engine (fast bitboard implementation, any rows x cols, any N) |
 | `connectn/agents.py` | The seven algorithms: Random, Greedy, Minimax, Alpha-Beta, Monte Carlo, MCTS, Q-Learning |
 | `play.py` | Play in the terminal: you vs an AI, two humans, or AI vs AI |
+| `web/`, `play_web.bat` | Browser version of the game: human vs bots, bot vs bot, with a live view of each bot's reasoning |
 | `tournament.py` | Round-robin tournament (Connect 4 on 6x7, and Connect 5 on 8x9) |
 | `experiments.py` | Pruning efficiency, Alpha-Beta depth scaling, MCTS budget scaling |
 | `analyze.py` | Turns raw game logs into standings, Elo ratings, head-to-head tables and charts |
@@ -24,7 +25,17 @@ a presentation.
 
 Python 3.10+ with `matplotlib` (only needed for charts). The deck builder needs Node.js with `pptxgenjs`.
 
-## Play
+## Play in the browser (for demos)
+
+Double-click `play_web.bat`, or run:
+
+```bash
+python -m http.server 8765 --directory web
+```
+
+then open http://localhost:8765. Pick Human or any of the seven bots for Red and Gold, choose a board, and click a column (or press 1-9). The side panel shows what the bot was thinking (its score for every column). Everything runs locally in the browser - no internet needed. The bots are a JavaScript port of `connectn/agents.py` (`web/engine.js`) with the same budgets as the tournament.
+
+## Play in the terminal
 
 ```bash
 python play.py                              # you vs Alpha-Beta, classic Connect 4
